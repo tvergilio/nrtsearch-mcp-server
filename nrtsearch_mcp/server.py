@@ -9,13 +9,23 @@ Minimal FastMCP server that exposes one tool: nrtsearch/search
 
 
 import logging
+import os
 from typing import List, Optional
 import httpx
 from fastmcp import FastMCP
 from pydantic import BaseModel
 from nrtsearch_mcp.settings import Settings
 
-logger = logging.getLogger(__name__)
+
+# Structured logging setup
+logger = logging.getLogger("nrtsearch.mcp")
+handler = logging.StreamHandler()
+formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
+handler.setFormatter(formatter)
+if not logger.hasHandlers():
+    logger.addHandler(handler)
+log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
+logger.setLevel(getattr(logging, log_level, logging.INFO))
 
 settings = Settings()
 mcp = FastMCP("nrtsearch")          # host / port / path supplied at run()
