@@ -2,12 +2,12 @@
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
-[project]
+
 name = "nrtsearch-mcp"
 version = "0.1.0"
-description = "Model Context Protocol server for NRTSearch"
+description = "FastMCP wrapper around Yelp NRTSearch"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.12"
 license = {text = "MIT"}
 authors = [
     {name = "Thalita Vergilio", email = "your-email@example.com"}
@@ -22,11 +22,8 @@ classifiers = [
     "Topic :: Text Processing :: Indexing"
 ]
 dependencies = [
-    # MCP is not available on PyPI but can be installed from GitHub:
-    # pip install git+https://github.com/modelcontextprotocol/python-sdk.git
-    # or you can use Claude Desktop which includes the MCP package
-    "httpx>=0.24.0",
-    "pydantic>=2.0.0"
+    "fastmcp~=2.9",
+    "httpx~=0.27"
 ]
 
 [project.urls]
@@ -34,7 +31,7 @@ dependencies = [
 "Bug Tracker" = "https://github.com/tvergilio/nrtsearch-mcp-server/issues"
 
 [project.scripts]
-nrtsearch-mcp = "nrtsearch_mcp.server:main"
+nrtsearch-mcp-server = "nrtsearch_mcp.server:entrypoint"
 
 [tool.setuptools]
 packages = ["nrtsearch_mcp", "nrtsearch_mcp.tools"]

@@ -113,6 +113,14 @@ async def search(
 
 
 # ────────── run the server ────────────────────────────────────────────────────
-if __name__ == "__main__":
+
+def entrypoint():
+    # CLI entry-point for nrtsearch-mcp-server
+    main()
+
+def main():
     # Streamable-HTTP endpoint on http://127.0.0.1:3000/
     mcp.run(transport="http", host="127.0.0.1", port=3000, path="/")
+
+if __name__ == "__main__":
+    entrypoint()
