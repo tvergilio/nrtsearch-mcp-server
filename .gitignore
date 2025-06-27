@@ -1,3 +1,7 @@
+# Ignore Python virtual environments
+.venv/
+venv/
+.venv_mcp/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
