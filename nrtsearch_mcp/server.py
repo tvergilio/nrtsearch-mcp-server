@@ -43,37 +43,9 @@ class SearchResult(BaseModel):
 
 
 # ────────── MCP tool ──────────────────────────────────────────────────────────
-@mcp.tool(
-    description="Search an NRTSearch/Lucene index",
-    annotations={
-        "parameters": {
-            "properties": {
-                "queryText": {
-                    "description": (
-                        "Lucene Boolean query **required**.\n"
-                        "• Join keywords with AND/OR/NOT  → text:(gay AND bar AND sf)\n"
-                        "• Use quotes for phrases         → text:\"great coffee\"\n"
-                        "• Range / wildcard / fuzzy ok    → stars:[4 TO 5], bar*, cocktail~1"
-                    )
-                }
-            }
-        },
-        "examples": [
-            {  # Boolean keywords
-                "index": "yelp_reviews_staging",
-                "queryText": 'text:(irish AND pub AND (texas OR tx))',
-                "topHits": 3
-            },
-            {  # Phrase
-                "index": "yelp_reviews_staging",
-                "queryText": 'text:"great coffee"',
-                "topHits": 5
-            }
-        ],
-    },
-)
 
-async def search(
+# Private implementation for search logic, for direct unit testing
+async def _search_impl(
     index: str,
     queryText: str,
     topHits: int = 10,
@@ -81,12 +53,7 @@ async def search(
     highlight: bool = False,
 ) -> SearchResult:
     """
-    index         – index name (e.g. yelp_reviews_staging)
-    queryText     – **Full Lucene query**. If no field or quotes are present the
-                    string is treated as a phrase on the `text` field, i.e.
-                    → text:"…"
-    topHits       – 1-100 results (default 10)
-    retrieveFields – optional extra fields; defaults to ["text", "stars"]
+    Core search logic for NRTSearch/Lucene index. Used by the tool and for direct unit testing.
     """
     # ── sanity-check inputs ───────────────────────────────────────────────────
     topHits = max(1, min(topHits, 100))
@@ -141,6 +108,46 @@ async def search(
         )
 
     return SearchResult(hits=hits)
+
+
+# MCP tool wrapper calls the private implementation
+@mcp.tool(
+    description="Search an NRTSearch/Lucene index",
+    annotations={
+        "parameters": {
+            "properties": {
+                "queryText": {
+                    "description": (
+                        "Lucene Boolean query **required**.\n"
+                        "• Join keywords with AND/OR/NOT  → text:(gay AND bar AND sf)\n"
+                        "• Use quotes for phrases         → text:\"great coffee\"\n"
+                        "• Range / wildcard / fuzzy ok    → stars:[4 TO 5], bar*, cocktail~1"
+                    )
+                }
+            }
+        },
+        "examples": [
+            {  # Boolean keywords
+                "index": "yelp_reviews_staging",
+                "queryText": 'text:(irish AND pub AND (texas OR tx))',
+                "topHits": 3
+            },
+            {  # Phrase
+                "index": "yelp_reviews_staging",
+                "queryText": 'text:"great coffee"',
+                "topHits": 5
+            }
+        ],
+    },
+)
+async def search(
+    index: str,
+    queryText: str,
+    topHits: int = 10,
+    retrieveFields: Optional[List[str]] = None,
+    highlight: bool = False,
+) -> SearchResult:
+    return await _search_impl(index, queryText, topHits, retrieveFields, highlight)
 
 
 # ────────── run the server ────────────────────────────────────────────────────
