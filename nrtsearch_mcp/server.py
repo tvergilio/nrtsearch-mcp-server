@@ -7,15 +7,17 @@ Minimal FastMCP server that exposes one tool: nrtsearch/search
 • Returns   [{"score": …, "stars": …, "text": …}]  – easy for Copilot to display.
 """
 
+
 import logging
 from typing import List, Optional
-
 import httpx
 from fastmcp import FastMCP
 from pydantic import BaseModel
+from nrtsearch_mcp.settings import Settings
 
 logger = logging.getLogger(__name__)
 
+settings = Settings()
 mcp = FastMCP("nrtsearch")          # host / port / path supplied at run()
 
 # ────────── result schema ─────────────────────────────────────────────────────
@@ -84,9 +86,9 @@ async def search(
     logger.info("→ search %s | %r | top=%s", index, queryText, topHits)
 
     # ── call the HTTP wrapper ────────────────────────────────────────────────
-    async with httpx.AsyncClient(timeout=10.0) as client:
+    async with httpx.AsyncClient(timeout=settings.timeout) as client:
         resp = await client.post(
-            "http://localhost:8080/v1/search",
+            f"{settings.gateway_url}/v1/search",
             json={
                 "indexName": index,
                 "queryText": queryText,
@@ -118,9 +120,10 @@ def entrypoint():
     # CLI entry-point for nrtsearch-mcp-server
     main()
 
+
 def main():
-    # Streamable-HTTP endpoint on http://127.0.0.1:3000/
-    mcp.run(transport="http", host="127.0.0.1", port=3000, path="/")
+    # Streamable-HTTP endpoint on http://host:port/
+    mcp.run(transport="http", host=settings.host, port=settings.port, path="/")
 
 if __name__ == "__main__":
     entrypoint()
