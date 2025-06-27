@@ -12,6 +12,7 @@ import logging
 import os
 from typing import List, Optional
 import httpx
+import asyncio
 from fastmcp import FastMCP
 from pydantic import BaseModel
 from nrtsearch_mcp.settings import Settings
@@ -96,18 +97,32 @@ async def search(
     logger.info("→ search %s | %r | top=%s", index, queryText, topHits)
 
     # ── call the HTTP wrapper ────────────────────────────────────────────────
-    async with httpx.AsyncClient(timeout=settings.timeout) as client:
-        resp = await client.post(
-            f"{settings.gateway_url}/v1/search",
-            json={
-                "indexName": index,
-                "queryText": queryText,
-                "topHits": topHits,
-                "retrieveFields": retrieveFields,
-            },
-        )
-        resp.raise_for_status()
-        raw = resp.json()
+    attempt = 0
+    max_attempts = 3
+    backoff = 0.1
+    while True:
+        try:
+            async with httpx.AsyncClient(timeout=settings.timeout) as client:
+                resp = await client.post(
+                    f"{settings.gateway_url}/v1/search",
+                    json={
+                        "indexName": index,
+                        "queryText": queryText,
+                        "topHits": topHits,
+                        "retrieveFields": retrieveFields,
+                    },
+                )
+                resp.raise_for_status()
+                raw = resp.json()
+            break
+        except (httpx.RequestError, httpx.HTTPStatusError) as e:
+            attempt += 1
+            logger.warning(f"Gateway call failed (attempt {attempt}): {e}")
+            if attempt >= max_attempts:
+                logger.error("Max retry attempts reached. Raising error.")
+                raise
+            await asyncio.sleep(backoff)
+            backoff = min(backoff * 2, 0.8)
 
     # ── reshape results for Copilot ──────────────────────────────────────────
     hits: List[Hit] = []
