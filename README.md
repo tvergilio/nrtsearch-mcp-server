@@ -35,11 +35,15 @@ This will:
 
 ### CLI / Manual
 
+
 After installation, you can start the server with either:
 
 ```bash
 # Using the Python module
 python -m nrtsearch_mcp.server
+
+# Or, if installed via pip/pipx, use the CLI entrypoint:
+nrtsearch-mcp-server
 ```
 
 ### With GitHub Copilot (VS Code)

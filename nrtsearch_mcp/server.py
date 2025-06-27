@@ -18,6 +18,8 @@ from pydantic import BaseModel
 from nrtsearch_mcp.settings import Settings
 
 
+# Add missing import
+import time
 # Structured logging setup
 logger = logging.getLogger("nrtsearch.mcp")
 handler = logging.StreamHandler()
@@ -25,10 +27,8 @@ formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
 handler.setFormatter(formatter)
 if not logger.hasHandlers():
     logger.addHandler(handler)
-log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
-logger.setLevel(getattr(logging, log_level, logging.INFO))
-
 settings = Settings()
+logger.setLevel(getattr(logging, settings.log_level.upper(), logging.INFO))
 mcp = FastMCP("nrtsearch")          # host / port / path supplied at run()
 
 # ────────── result schema ─────────────────────────────────────────────────────
@@ -68,7 +68,13 @@ async def _search_impl(
     attempt = 0
     max_attempts = 3
     backoff = 0.1
+    total_timeout = getattr(settings, "total_timeout", 10.0)
+    start_time = time.monotonic()
     while True:
+        elapsed = time.monotonic() - start_time
+        if elapsed > total_timeout:
+            logger.error("Total retry timeout (%.2fs) exceeded for search operation", total_timeout)
+            raise TimeoutError(f"Total retry timeout ({total_timeout}s) exceeded")
         try:
             async with httpx.AsyncClient(timeout=settings.timeout) as client:
                 payload = {
