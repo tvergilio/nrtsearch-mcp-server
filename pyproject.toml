@@ -33,7 +33,7 @@ dependencies = [
 "Bug Tracker" = "https://github.com/tvergilio/nrtsearch-mcp-server/issues"
 
 [project.scripts]
-nrtsearch-mcp-server = "nrtsearch_mcp.server:entrypoint"
+nrtsearch-mcp = "nrtsearch_mcp.server:entrypoint"
 
 [tool.setuptools]
 packages = ["nrtsearch_mcp", "nrtsearch_mcp.tools"]

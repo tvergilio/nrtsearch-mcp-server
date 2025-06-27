@@ -60,7 +60,13 @@ async def _search_impl(
     if "text:" not in queryText and '"' not in queryText:
         queryText = f'text:"{queryText}"'
 
-    retrieveFields = retrieveFields or ["text", "stars"]
+    if not retrieveFields:
+        # Try to get a default from settings, or fallback to an empty list
+        retrieveFields = getattr(settings, "default_retrieve_fields", {}).get(index)
+        if retrieveFields is None:
+            retrieveFields = getattr(settings, "default_retrieve_fields_global", [])
+        if not retrieveFields:
+            mcp_logger.warning("No retrieveFields specified and no default found for index '%s'.", index)
 
     logger.info("→ search %s | %r | top=%s", index, queryText, topHits)
 
@@ -105,13 +111,23 @@ async def _search_impl(
     hits: List[Hit] = []
     for hit in raw.get("hits", []):
         fields = hit["fields"]
-        hits.append(
-            Hit(
-                score=hit["score"],
-                stars=fields["stars"]["fieldValue"][0]["intValue"],
-                text=fields["text"]["fieldValue"][0]["textValue"],
+        try:
+            score = hit.get("score", 0.0)
+            stars = None
+            text = None
+            if "stars" in fields and fields["stars"].get("fieldValue"):
+                stars = fields["stars"]["fieldValue"][0].get("intValue")
+            if "text" in fields and fields["text"].get("fieldValue"):
+                text = fields["text"]["fieldValue"][0].get("textValue")
+            hits.append(
+                Hit(
+                    score=score,
+                    stars=stars,
+                    text=text,
+                )
             )
-        )
+        except Exception as e:
+            mcp_logger.error("Error extracting hit fields: %s", e)
 
     return SearchResult(hits=hits)
 
