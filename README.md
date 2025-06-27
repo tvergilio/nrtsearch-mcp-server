@@ -39,17 +39,18 @@ This will:
 After installation, you can start the server with either:
 
 ```bash
+
 # Using the Python module
 python -m nrtsearch_mcp.server
 
 # Or, if installed via pip/pipx, use the CLI entrypoint:
-nrtsearch-mcp-server
+nrtsearch-mcp
 ```
 
 ### With GitHub Copilot (VS Code)
 1. Install VS Code and GitHub Copilot
 2. Add `nrtsearch-mcp` as a Model Context Provider in VS Code settings (see `.vscode/settings.json`)
-3. Start the server (`./quickstart.sh` or `nrtsearch-mcp-server`)
+3. Start the server (`./quickstart.sh` or `nrtsearch-mcp`)
 4. Use Copilot Chat to query your Lucene indexes in natural language
 
 ---
