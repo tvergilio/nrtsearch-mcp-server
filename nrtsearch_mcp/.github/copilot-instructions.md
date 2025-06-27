@@ -41,8 +41,19 @@
       "queryText": "text:(lovely AND \"sweet potato\")",
       "topHits": 3
     }
-    ```      
-  
+    ```
+
+- To highlight matching terms in the results, add `"highlight": true` to your query:
+
+    ```json
+    {
+      "index": "yelp_reviews_staging",
+      "queryText": "text:(sushi AND amex)",
+      "topHits": 3,
+      "highlight": true
+    }
+    ```
+
 - See the tool’s annotation for more Lucene examples:
   - Boolean: `text:(irish AND pub AND (texas OR tx))`
   - Phrase: `text:"great coffee"`

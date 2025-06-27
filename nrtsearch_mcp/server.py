@@ -78,6 +78,7 @@ async def search(
     queryText: str,
     topHits: int = 10,
     retrieveFields: Optional[List[str]] = None,
+    highlight: bool = False,
 ) -> SearchResult:
     """
     index         – index name (e.g. yelp_reviews_staging)
@@ -103,14 +104,17 @@ async def search(
     while True:
         try:
             async with httpx.AsyncClient(timeout=settings.timeout) as client:
+                payload = {
+                    "indexName": index,
+                    "queryText": queryText,
+                    "topHits": topHits,
+                    "retrieveFields": retrieveFields,
+                }
+                if highlight:
+                    payload["highlightFields"] = ["text"]
                 resp = await client.post(
                     f"{settings.gateway_url}/v1/search",
-                    json={
-                        "indexName": index,
-                        "queryText": queryText,
-                        "topHits": topHits,
-                        "retrieveFields": retrieveFields,
-                    },
+                    json=payload,
                 )
                 resp.raise_for_status()
                 raw = resp.json()
