@@ -1,8 +1,9 @@
+
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
-
+[project]
 name = "nrtsearch-mcp"
 version = "0.1.0"
 description = "FastMCP wrapper around Yelp NRTSearch"
@@ -27,6 +28,7 @@ dependencies = [
     "pydantic~=2.7",
     "pydantic-settings~=2.2"
 ]
+
 
 [project.urls]
 "Homepage" = "https://github.com/tvergilio/nrtsearch-mcp-server"
