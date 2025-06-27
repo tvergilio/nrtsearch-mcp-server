@@ -1,0 +1,23 @@
+{
+    "nrtsearch_connection": {
+        "host": "localhost",
+        "port": 8080,
+        "use_https": false
+    },
+    "indexes": [
+        {
+            "name": "yelp_reviews_staging",
+            "description": "Yelp reviews dataset with ~7M documents",
+            "fields": [
+                "review_id",
+                "business_id",
+                "stars",
+                "text"
+            ],
+            "default_search_fields": [
+                "text"
+            ]
+        }
+    ],
+    "log_level": "INFO"
+}

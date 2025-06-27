@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nrtsearch-mcp"
+version = "0.1.0"
+description = "Model Context Protocol server for NRTSearch"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "Thalita Vergilio", email = "your-email@example.com"}
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing :: Indexing"
+]
+dependencies = [
+    # MCP is not available on PyPI but can be installed from GitHub:
+    # pip install git+https://github.com/modelcontextprotocol/python-sdk.git
+    # or you can use Claude Desktop which includes the MCP package
+    "httpx>=0.24.0",
+    "pydantic>=2.0.0"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/tvergilio/nrtsearch-mcp-server"
+"Bug Tracker" = "https://github.com/tvergilio/nrtsearch-mcp-server/issues"
+
+[project.scripts]
+nrtsearch-mcp = "nrtsearch_mcp.server:main"
+
+[tool.setuptools]
+packages = ["nrtsearch_mcp", "nrtsearch_mcp.tools"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
+# Ignore missing imports for the MCP package
+[[tool.mypy.overrides]]
+module = "mcp.*"
+ignore_missing_imports = true
+
+# Add the stubs directory to the search path
+mypy_path = "stubs"

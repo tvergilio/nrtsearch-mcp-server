@@ -1,0 +1,12 @@
+{
+    "mcpServers": {
+        "nrtsearch-mcp": {
+            "command": "python",
+            "args": [
+                "-m",
+                "nrtsearch_mcp.server"
+            ],
+            "cwd": "/Users/thalitavergilio/nrtsearch-mcp-server"
+        }
+    }
+}
