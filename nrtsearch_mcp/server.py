@@ -18,17 +18,10 @@ from pydantic import BaseModel
 from nrtsearch_mcp.settings import Settings
 
 
-# Add missing import
 import time
-# Structured logging setup
-logger = logging.getLogger("nrtsearch.mcp")
-handler = logging.StreamHandler()
-formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
-handler.setFormatter(formatter)
-if not logger.hasHandlers():
-    logger.addHandler(handler)
+from nrtsearch_mcp.logging import setup_logging
 settings = Settings()
-logger.setLevel(getattr(logging, settings.log_level.upper(), logging.INFO))
+logger = setup_logging("nrtsearch.mcp", settings.log_level)
 mcp = FastMCP("nrtsearch")          # host / port / path supplied at run()
 
 # ────────── result schema ─────────────────────────────────────────────────────
@@ -65,16 +58,19 @@ async def _search_impl(
         retrieveFields = getattr(settings, "default_retrieve_fields", {}).get(index)
         if retrieveFields is None:
             retrieveFields = getattr(settings, "default_retrieve_fields_global", [])
+        # Ensure retrieveFields is always a list
         if not retrieveFields:
-            mcp_logger.warning("No retrieveFields specified and no default found for index '%s'.", index)
+            logger.warning("No retrieveFields specified and no default found for index '%s'.", index)
+        retrieveFields = list(retrieveFields) if retrieveFields else []
 
     logger.info("→ search %s | %r | top=%s", index, queryText, topHits)
 
     # ── call the HTTP wrapper ────────────────────────────────────────────────
     attempt = 0
-    max_attempts = 3
-    backoff = 0.1
+    max_attempts = getattr(settings, "retry_max_attempts", 3)
+    backoff = getattr(settings, "retry_initial_backoff", 0.1)
     total_timeout = getattr(settings, "total_timeout", 10.0)
+    per_attempt_timeout = getattr(settings, "per_attempt_timeout", 5.0)
     start_time = time.monotonic()
     while True:
         elapsed = time.monotonic() - start_time
@@ -82,7 +78,7 @@ async def _search_impl(
             logger.error("Total retry timeout (%.2fs) exceeded for search operation", total_timeout)
             raise TimeoutError(f"Total retry timeout ({total_timeout}s) exceeded")
         try:
-            async with httpx.AsyncClient(timeout=settings.timeout) as client:
+            async with httpx.AsyncClient(timeout=per_attempt_timeout) as client:
                 payload = {
                     "indexName": index,
                     "queryText": queryText,
@@ -126,8 +122,8 @@ async def _search_impl(
                     text=text,
                 )
             )
-        except Exception as e:
-            mcp_logger.error("Error extracting hit fields: %s", e)
+        except (KeyError, IndexError, TypeError) as e:
+            logger.error("Error extracting hit fields: %s", e)
 
     return SearchResult(hits=hits)
 
